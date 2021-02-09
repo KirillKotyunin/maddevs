@@ -1,5 +1,5 @@
 <template>
-  <!-- <form class="footer-form form">
+  <form class="footer-form form">
     <ValidationObserver v-slot="{ invalid }" ref="form">
       <div class="fields-list">
         <ValidationProvider class="field-item" rules="max:50" v-slot="{ classes, errors }">
@@ -31,13 +31,8 @@
         ref="submitButton"
       />
     </ValidationObserver>
-    <SuccessModal :visibled="isEmailSent" id="footer-modal" @onClose="resetForm" />
-  </form> -->
-  <button
-    class="ui-button--transparent-bgc submit-button"
-    @click="createLead"
-    type="button"
-  >Create Lead</button>
+    <SuccessModal :visibled="isFormSent" id="footer-modal" @onClose="resetForm" />
+  </form>
 </template>
 
 <script>
@@ -64,20 +59,12 @@ export default {
     projectDescriber: '',
     agreeWithPrivacyPolicy: false,
     agreeToGetMadDevsDiscountOffers: false,
-    isEmailSent: false,
+    isFormSent: false,
     onSubmit: false,
     subject: 'Marketing',
     modalTitle: 'Mad Devs Website Forms'
   }),
   methods: {
-    createLead() {
-      const data = {
-        name: 'Test name: ' + Math.random(0, 100)
-      };
-      this.$store.dispatch('createNewLead', data).then(res => {
-        console.log(res, '!!!!!');
-      });
-    },
     getPrivacyCheckboxState(privacyState) {
       this.agreeWithPrivacyPolicy = privacyState;
     },
@@ -101,20 +88,39 @@ export default {
             modalTitle: this.modalTitle
           }
         };
-        this.$store.dispatch('sendEmail', this.form).then(res => {
-          this.onSubmit = false;
-          if (res.status === 200) {
-            this.isEmailSent = true;
-            this.setStateForElements('Order a project now');
-            this.resetForm();
-            setTimeout(() => {
-              this.isEmailSent = false;
-            }, 3000);
-          } else {
-            this.isEmailSent = false;
-          }
-        });
+        this.sendEmail();
+        this.createLead();
       }
+    },
+    sendEmail() {
+      this.$store.dispatch('sendEmail', this.form).then(res => {
+        this.onSubmit = false;
+        if (res.status === 200) {
+          this.isFormSent = true;
+          this.setStateForElements('Order a project now');
+          this.resetForm();
+          setTimeout(() => {
+            this.isFormSent = false;
+          }, 3000);
+        } else {
+          this.isFormSent = false;
+        }
+      });
+    },
+    createLead() {
+      this.$store.dispatch('createNewLead', this.form).then(res => {
+        this.onSubmit = false;
+        if (res.status === 200) {
+          this.isFormSent = true;
+          this.setStateForElements('Order a project now');
+          this.resetForm();
+          setTimeout(() => {
+            this.isFormSent = false;
+          }, 3000);
+        } else {
+          this.isFormSent = false;
+        }
+      });
     },
     setStateForElements(buttonText) {
       this.$refs.submitButton.$el.innerText = buttonText;
